@@ -56,6 +56,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check DIRECT_URL secret is configured
+        run: |
+          if [ -z "$DIRECT_URL" ]; then
+            echo "The DIRECT_URL secret is not configured."
+            echo "Add it to Settings > Secrets and variables > Actions to enable automatic"
+            echo "migration deploys. Skipping deploy-migrations."
+            exit 0
+          fi
+          echo "DIRECT_URL secret present, proceeding with migration deploy."
+
       - name: Generate client
         run: npx prisma generate
 
