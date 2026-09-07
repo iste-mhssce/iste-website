@@ -235,12 +235,51 @@ CI (`.github/workflows/ci.yml`) runs `prisma validate`, typecheck, lint, and
 `npm test` on every PR; `prisma migrate deploy` runs against Supabase
 `DIRECT_URL` on merge to `main`.
 
-## Deployment to Supabase (production)
+## Deployment (Vercel + managed Postgres)
+
+The app builds and runs on Vercel. All database calls go through API routes
+(dynamic), so a build does **not** need a reachable database; the Prisma client
+is generated automatically via the `postinstall` script.
+
+### 1. Push to GitHub, import the repo in Vercel
+
+- Import `iste-mhssce/iste-website` in the Vercel dashboard.
+- Framework preset: **Next.js** (auto-detected).
+- Build command: default (`next build`). Install command: default (`npm ci` runs
+  `postinstall` → `prisma generate`).
+
+### 2. Add environment variables (Settings → Environment Variables)
+
+| Variable | Required | Notes |
+|---|---|---|
+| `DATABASE_URL` | **Yes** | App traffic connection (use the pooler/edge URL from Neon/Supabase/Vercel Postgres) |
+| `DIRECT_URL` | **Yes** | Session/direct connection used by Prisma migrate; must be set for `prisma` CLI steps |
+| `AUTH_SECRET` | **Yes** | Signs session cookies. Generate a strong value, e.g. `openssl rand -base64 32`. Without it login/roles fail |
+| `NEXT_PUBLIC_SUPABASE_URL` | No | Only if using Supabase for auth/storage |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | ditto |
+| `SUPABASE_SERVICE_ROLE_KEY` | No | server-only, never expose publicly |
+| `ADMIN_API_KEY` | No | Optional legacy Bearer fallback for admin routes |
+| `AI_PROVIDER_API_KEY` | No | Optional; chat/recommendations degrade gracefully without it |
+| `AI_CHAT_MODEL` / `AI_EMBEDDING_MODEL` | No | Optional overrides |
+
+### 3. Run migrations + seed once (production database)
+
+After the first deploy, connect the deploy machine (or the CI `deploy-migrations`
+job — add `DATABASE_URL`/`DIRECT_URL` as GitHub Actions secrets) to your prod DB:
 
 ```bash
 npx prisma migrate deploy   # uses DIRECT_URL (session connection)
-npm run backfill:embeddings
+npm run seed                # creates default admin/head/member + demo data
 ```
+
+### 4. Hardening before going public
+
+- **Change the default admin password** (`admin@iste.com` / `Admin@123`) after the
+  first login — the seed logs them out on the dashboard and resets happen via
+  `PATCH /api/admin/users`.
+- Set a unique, strong `AUTH_SECRET` (never reuse the local dev value).
+- If AI search/RAG should be production-grade: install `pgvector` on your host and
+  run `npm run backfill:embeddings`.
 
 Verify `/api/ai/chat` and `/api/ai/recommend-events` return grounded output
 before announcing AI features publicly.
