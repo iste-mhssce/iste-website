@@ -68,13 +68,11 @@ export async function scoreEvents(
       const interestEmbedding = await generateEmbedding(signal.interests);
       const eventIds = upcomingEvents.map((e) => e.id);
 
-      const rows = await prisma.$queryRawUnsafe<
+      const rows = await prisma.$queryRaw<
         { id: string; embedding: string }[]
-      >(
-        `SELECT id, embedding::text AS embedding
+      >`SELECT id, embedding::text AS embedding
          FROM "Event"
-         WHERE id IN (${eventIds.map((id) => `'${id}'`).join(",")}) AND embedding IS NOT NULL`,
-      );
+         WHERE id = ANY(${eventIds}) AND embedding IS NOT NULL`;
 
       const interestVec = interestEmbedding;
       for (const row of rows) {

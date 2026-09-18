@@ -15,7 +15,7 @@ export async function PATCH(
   const ip = getClientIp(req);
   const { id } = await params;
 
-  const gate = await requireRole(req, "HEAD");
+  const gate = await requireRole(req, "ADMIN");
   if (!("user" in gate)) return gate as Response;
 
   if (!rateLimit(`admin-intake:${ip}`, 20)) {

@@ -1,5 +1,5 @@
 /**
- * One-off embedding backfill for seeded events and publications.
+ * One-off embedding backfill for seeded events and posts.
  *
  * Usage:
  *   npx tsx scripts/backfill-embeddings.ts
@@ -48,9 +48,9 @@ async function main() {
     return data.data.map((d) => d.embedding);
   }
 
-  const [events, pubs] = await Promise.all([
+  const [events, posts] = await Promise.all([
     prisma.event.findMany(),
-    prisma.publication.findMany(),
+    prisma.post.findMany(),
   ]);
 
   let indexed = 0;
@@ -60,9 +60,9 @@ async function main() {
     const text = `${ev.title}. ${ev.tag} ${ev.category}. ${ev.description}. ${ev.location}`;
     try {
       const [vec] = await embed([text]);
-      await prisma.$executeRawUnsafe(
-        `UPDATE "Event" SET "embedding" = '${JSON.stringify(vec)}'::vector WHERE id = '${ev.id}'`,
-      );
+      await prisma.$executeRaw`
+        UPDATE "Event" SET "embedding" = ${JSON.stringify(vec)}::vector WHERE id = ${ev.id}
+      `;
       indexed++;
     } catch (e) {
       errors++;
@@ -70,17 +70,17 @@ async function main() {
     }
   }
 
-  for (const pub of pubs) {
-    const text = `${pub.title}. By ${pub.author}.`;
+  for (const post of posts) {
+    const text = `${post.title}. ${post.excerpt}.`;
     try {
       const [vec] = await embed([text]);
-      await prisma.$executeRawUnsafe(
-        `UPDATE "Publication" SET "embedding" = '${JSON.stringify(vec)}'::vector WHERE id = '${pub.id}'`,
-      );
+      await prisma.$executeRaw`
+        UPDATE "Post" SET "embedding" = ${JSON.stringify(vec)}::vector WHERE id = ${post.id}
+      `;
       indexed++;
     } catch (e) {
       errors++;
-      console.error(`Publication ${pub.id} failed`, e);
+      console.error(`Post ${post.id} failed`, e);
     }
   }
 

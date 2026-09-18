@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MHSSCOE ISTE NEXUS | Empowering Technical Innovation",
+  title: "ISTE-MHSSCE | Empowering Technical Innovation",
   description:
     "MHSSCOE ISTE Student Chapter - Empowering technical innovation, fostering leadership, and building future engineers through workshops, hackathons, and industry certifications.",
 };

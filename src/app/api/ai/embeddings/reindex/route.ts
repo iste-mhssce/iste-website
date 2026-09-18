@@ -7,7 +7,7 @@ import { rateLimit } from "@lib/ai/rateLimiter";
 import { logApi, logWarn } from "@lib/log/logger";
 
 /**
- * Admin-only: regenerate embeddings for all events and publications.
+ * Admin-only: regenerate embeddings for all events and posts.
  * Should be run after content edits or when new rows are created.
  * Graceful: if any single row fails to embed, it is skipped and logged.
  */
@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const [events, publications] = await Promise.all([
+  const [events, posts] = await Promise.all([
     prisma.event.findMany(),
-    prisma.publication.findMany(),
+    prisma.post.findMany(),
   ]);
 
   let indexed = 0;
@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
     const text = `${ev.title}. ${ev.tag} ${ev.category}. ${ev.description}. ${ev.location}`;
     try {
       const [vec] = await generateEmbedding(text);
-      await prisma.$executeRawUnsafe(
-        `UPDATE "Event" SET "embedding" = '${JSON.stringify(vec)}'::vector WHERE id = '${ev.id}'`,
-      );
+      await prisma.$executeRaw`
+        UPDATE "Event" SET "embedding" = ${JSON.stringify(vec)}::vector WHERE id = ${ev.id}
+      `;
       indexed++;
     } catch (err) {
       errors++;
@@ -53,19 +53,19 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Publications
-  for (const pub of publications) {
-    const text = `${pub.title}. By ${pub.author}.`;
+  // Posts
+  for (const post of posts) {
+    const text = `${post.title}. ${post.excerpt}.`;
     try {
       const [vec] = await generateEmbedding(text);
-      await prisma.$executeRawUnsafe(
-        `UPDATE "Publication" SET "embedding" = '${JSON.stringify(vec)}'::vector WHERE id = '${pub.id}'`,
-      );
+      await prisma.$executeRaw`
+        UPDATE "Post" SET "embedding" = ${JSON.stringify(vec)}::vector WHERE id = ${post.id}
+      `;
       indexed++;
     } catch (err) {
       errors++;
-      logWarn("reindex", "publication embed failed", {
-        id: pub.id,
+      logWarn("reindex", "post embed failed", {
+        id: post.id,
         error: String(err),
       });
     }

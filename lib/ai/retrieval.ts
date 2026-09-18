@@ -3,14 +3,14 @@ import { logWarn } from "@lib/log/logger";
 
 export interface RetrievedItem {
   id: string;
-  type: "event" | "publication";
+  type: "event" | "post";
   content: string;
 }
 
 /**
  * Retrieval-augmented generation context lookup.
  *
- * Embeds the query and runs cosine-similarity against Event and Publication
+ * Embeds the query and runs cosine-similarity against Event and Post
  * semantic vectors when an AI provider key is configured AND the database has
  * a pgvector `vector` column (enabled by installing the pgvector extension).
  * Otherwise it degrades gracefully to an empty context so the assistant reverts
@@ -38,22 +38,20 @@ export async function retrieveContext(
   const results: Array<RetrievedItem & { distance: number }> = [];
 
   try {
-    const eventRows = await prisma.$queryRawUnsafe<{
+    const eventRows = await prisma.$queryRaw<{
       id: string;
       content: string;
       distance: number;
-    }[]>(
-      `
+    }[]>`
         SELECT
           id,
           title || ' | ' || COALESCE(location, '') || ' | ' || description AS content,
-          embedding <=> '${vecLiteral}'::vector AS distance
+          embedding <=> ${vecLiteral}::vector AS distance
         FROM "Event"
         WHERE embedding IS NOT NULL
-        ORDER BY embedding <=> '${vecLiteral}'::vector
+        ORDER BY embedding <=> ${vecLiteral}::vector
         LIMIT ${k}
-      `,
-    );
+      `;
     for (const row of eventRows) {
       results.push({
         id: row.id,
@@ -67,32 +65,30 @@ export async function retrieveContext(
   }
 
   try {
-    const pubRows = await prisma.$queryRawUnsafe<{
+    const postRows = await prisma.$queryRaw<{
       id: string;
       content: string;
       distance: number;
-    }[]>(
-      `
+    }[]>`
         SELECT
           id,
-          title || ' by ' || COALESCE(author, '') AS content,
-          embedding <=> '${vecLiteral}'::vector AS distance
-        FROM "Publication"
+          title || ' | ' || COALESCE(excerpt, '') AS content,
+          embedding <=> ${vecLiteral}::vector AS distance
+        FROM "Post"
         WHERE embedding IS NOT NULL
-        ORDER BY embedding <=> '${vecLiteral}'::vector
+        ORDER BY embedding <=> ${vecLiteral}::vector
         LIMIT ${k}
-      `,
-    );
-    for (const row of pubRows) {
+      `;
+    for (const row of postRows) {
       results.push({
         id: row.id,
-        type: "publication",
+        type: "post",
         content: row.content,
         distance: row.distance,
       });
     }
   } catch (err) {
-    logWarn("retrieval", "publication vector query failed", {
+    logWarn("retrieval", "post vector query failed", {
       error: String(err),
     });
   }

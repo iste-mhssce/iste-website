@@ -1,32 +1,39 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
 import { hashPassword } from "../lib/auth/password";
+import { DEFAULT_SITE_SETTINGS } from "../lib/site-settings";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding database...");
 
-  // Account credentials (admin creates lower-level accounts via the dashboard).
-  const accounts = [
+  // Account credentials (higher roles create lower accounts via the panel).
+  const accounts: {
+    email: string;
+    name: string;
+    password: string;
+    role: UserRole;
+    team: string | null;
+  }[] = [
+    {
+      email: "superadmin@iste.com",
+      name: "Super Administrator",
+      password: "Super@123",
+      role: "SUPER_ADMIN",
+      team: null,
+    },
     {
       email: "admin@iste.com",
       name: "Administrator",
       password: "Admin@123",
-      role: "ADMIN" as const,
-      team: null,
-    },
-    {
-      email: "head@iste.com",
-      name: "Tech Head",
-      password: "Head@123",
-      role: "HEAD" as const,
-      team: "Tech Team",
+      role: "ADMIN",
+      team: "Core Council",
     },
     {
       email: "member@iste.com",
       name: "Member One",
       password: "Member@123",
-      role: "MEMBER" as const,
+      role: "MEMBER",
       team: "Tech Team",
     },
   ];
@@ -48,8 +55,77 @@ async function main() {
     accounts.map((a) => `${a.email} (${a.role})`).join(", "),
   );
 
+  for (const [key, value] of Object.entries(DEFAULT_SITE_SETTINGS)) {
+    await prisma.siteSetting.upsert({
+      where: { key },
+      update: {},
+      create: { key, value },
+    });
+  }
+  console.log("Seeded site settings.");
+
+  // Posts / articles
+  const posts = [
+    {
+      slug: "welcome-to-iste-mhsscoe-2026",
+      title: "Welcome to ISTE MHSSCOE — A New Chapter of Innovation",
+      excerpt:
+        "Meet the 2026 committee and discover everything the ISTE student chapter plans to build this year.",
+      body:
+        "The ISTE MHSSCOE student chapter is excited to kick off the 2026 technical season. From hands-on " +
+        "workshops and national-level hackathons to industry mentorship and certification programs, our " +
+        "chapter exists to turn curious students into confident engineers.\n\nThroughout the year we will " +
+        "publish training notes, event recaps, and student research. Follow the chapter on our social links " +
+        "to stay in the loop, and keep an eye on the Events Hub for registrations.",
+      category: "Announcement",
+      author: "ISTE MHSSCOE Committee",
+      published: true,
+      publishedAt: new Date("2026-08-20T00:00:00Z"),
+    },
+    {
+      slug: "react-cloud-architecture-recap",
+      title: "Recap: React & Cloud Architecture Workshop",
+      excerpt:
+        "A quick summary of our first workshop of the year — modern React patterns and CI/CD deployments.",
+      body:
+        "Our first workshop of the year brought together 120+ students for a hands-on session on modern " +
+        "React patterns, server rendering, and shipping applications to the cloud. Attendees deployed a " +
+        "real application with a CI/CD pipeline before leaving the room.\n\nSlides and code references have " +
+        "been shared with registered members. If you missed it, sign up for the newsletter so you never " +
+        "miss an announcement again.",
+      category: "Event Recap",
+      author: "Tech Team",
+      published: true,
+      publishedAt: new Date("2026-08-28T00:00:00Z"),
+    },
+    {
+      slug: "student-guide-to-open-source",
+      title: "A Student's Guide to Contributing to Open Source",
+      excerpt:
+        "Practical steps to land your first meaningful open-source contribution while studying.",
+      body:
+        "Open source is one of the fastest ways to grow as a developer. Start small: pick a project you " +
+        "already use, read its contributing guide, and look for issues tagged 'good first issue'.\n\n" +
+        "Do not worry about perfection — maintainers value clear communication, tiny pull requests, and " +
+        "a willingness to learn. Your ISTE tech team hosts monthly 'Hack Night' sessions to help members " +
+        "make their first PR.",
+      category: "Resources",
+      author: "Technical Head",
+      published: true,
+      publishedAt: new Date("2026-09-05T00:00:00Z"),
+    },
+  ];
+  for (const p of posts) {
+    await prisma.post.upsert({
+      where: { slug: p.slug },
+      update: {},
+      create: p,
+    });
+  }
+  console.log("Seeded posts.");
+
   // Events
-  const reactEvent = await prisma.event.upsert({
+  await prisma.event.upsert({
     where: { slug: "react-cloud-architecture" },
     update: {},
     create: {
@@ -66,7 +142,7 @@ async function main() {
     },
   });
 
-  const genaiEvent = await prisma.event.upsert({
+  await prisma.event.upsert({
     where: { slug: "genai-automation-challenge" },
     update: {},
     create: {
@@ -83,7 +159,7 @@ async function main() {
     },
   });
 
-  const websec = await prisma.event.upsert({
+  await prisma.event.upsert({
     where: { slug: "web-app-vulnerabilities" },
     update: {},
     create: {
@@ -100,7 +176,7 @@ async function main() {
     },
   });
 
-  const hackathon2026 = await prisma.event.upsert({
+  await prisma.event.upsert({
     where: { slug: "national-level-hackathon-2026" },
     update: {},
     create: {
@@ -146,49 +222,73 @@ async function main() {
     },
   });
 
-  // Council members
-  const teams: { name: string; role: string; team: string; order: number }[] = [
-    { name: "Alex Morgan", role: "Chairperson", team: "Core Council", order: 1 },
-    { name: "Priya Sharma", role: "Vice Chairperson", team: "Core Council", order: 2 },
-    { name: "Rohan Deshmukh", role: "Secretary", team: "Core Council", order: 3 },
-    { name: "Sneha Kulkarni", role: "Treasurer", team: "Core Council", order: 4 },
-    { name: "Aditya Patil", role: "Technical Head", team: "Tech Team", order: 1 },
-    { name: "Meera Joshi", role: "Events Coordinator", team: "Management", order: 1 },
-    { name: "Tanvi Rao", role: "Creative Director", team: "Creatives", order: 1 },
+  // Council members (committee / team)
+  const teams: {
+    name: string;
+    role: string;
+    team: string;
+    order: number;
+    linkedin: string | null;
+    github: string | null;
+  }[] = [
+    { name: "Alex Morgan", role: "Chairperson", team: "Core Council", order: 1, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Priya Sharma", role: "Vice Chairperson", team: "Core Council", order: 2, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Rohan Deshmukh", role: "Secretary", team: "Core Council", order: 3, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Sneha Kulkarni", role: "Treasurer", team: "Core Council", order: 4, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Aditya Patil", role: "Technical Head", team: "Tech Team", order: 1, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Meera Joshi", role: "Events Coordinator", team: "Management", order: 1, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Tanvi Rao", role: "Creative Director", team: "Creatives", order: 1, linkedin: "https://linkedin.com", github: "https://github.com" },
+    { name: "Prof. N. Kulkarni", role: "Faculty Advisor", team: "Faculty Board", order: 1, linkedin: null, github: null },
   ];
   for (const m of teams) {
-    await prisma.councilMember.create({
-      data: m,
+    const existing = await prisma.councilMember.findFirst({
+      where: { name: m.name },
+    });
+    if (existing) {
+      await prisma.councilMember.update({
+        where: { id: existing.id },
+        data: m,
+      });
+    } else {
+      await prisma.councilMember.create({ data: m });
+    }
+  }
+
+  // Social links
+  const socials = [
+    { platform: "instagram", label: "Instagram", url: "https://instagram.com", order: 1 },
+    { platform: "linkedin", label: "LinkedIn", url: "https://linkedin.com", order: 2 },
+    { platform: "github", label: "GitHub", url: "https://github.com", order: 3 },
+    { platform: "youtube", label: "YouTube", url: "https://youtube.com", order: 4 },
+  ];
+  for (const s of socials) {
+    await prisma.socialLink.upsert({
+      where: { id: `${s.platform}-seed` },
+      update: {},
+      create: { id: `${s.platform}-seed`, ...s },
     });
   }
 
-  // Publications
-  await prisma.publication.upsert({
-    where: { id: "pub_node_graphql" },
-    update: {},
-    create: {
-      id: "pub_node_graphql",
-      title: "Building Scalable APIs with Node.js and GraphQL",
-      author: "Aditya Patil",
-      readTime: "5 min read",
-      publishedAt: new Date("2026-08-28T00:00:00Z"),
+  // Notifications
+  const notifications = [
+    {
+      title: "National Level Hackathon 2026 registrations are open",
+      body: "Team registrations close soon. Reserve your seat from the Events Hub.",
+      category: "event",
+      pinned: true,
     },
-  });
-
-  await prisma.publication.upsert({
-    where: { id: "pub_transformer_nlp" },
-    update: {},
-    create: {
-      id: "pub_transformer_nlp",
-      title: "Getting Started with Transformer Architectures in NLP",
-      author: "Priya Sharma",
-      readTime: "8 min read",
-      publishedAt: new Date("2026-08-22T00:00:00Z"),
+    {
+      title: "New workshop announced",
+      body: "React & Cloud Architecture workshop is coming up — stay tuned for the schedule.",
+      category: "workshop",
+      pinned: false,
     },
-  });
+  ];
+  for (const n of notifications) {
+    await prisma.notification.create({ data: n });
+  }
 
   console.log("Seed complete");
-  console.log({ reactEvent: reactEvent.id, genaiEvent: genaiEvent.id, websec: websec.id, hackathon2026: hackathon2026.id });
 }
 
 main()

@@ -38,8 +38,23 @@ export const intakeApplySchema = z.object({
   yearOfStudy: z.string().min(1).max(40),
   portfolioUrl: z
     .string()
-    .url("A valid portfolio URL is required")
+    .trim()
     .max(500)
+    .transform((v) => (v && !/^https?:\/\//i.test(v) ? `https://${v}` : v))
+    .refine(
+      (v) => {
+        if (!v) return true;
+        const parsed = z.string().url().safeParse(v);
+        if (!parsed.success) return false;
+        try {
+          const host = new URL(v).hostname.toLowerCase();
+          return host === "localhost" || host.includes(".");
+        } catch {
+          return false;
+        }
+      },
+      "A valid portfolio URL is required",
+    )
     .optional()
     .or(z.literal("")),
 });
@@ -78,17 +93,31 @@ export const createUserSchema = z.object({
     .string()
     .min(6, "Password must be at least 6 characters")
     .max(200),
-  role: z.enum(["ADMIN", "HEAD", "MEMBER"]),
+  role: z.enum(["SUPER_ADMIN", "ADMIN", "MEMBER"]),
   team: z.string().max(120).optional(),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(2).max(120).optional(),
-  role: z.enum(["ADMIN", "HEAD", "MEMBER"]).optional(),
+  role: z.enum(["SUPER_ADMIN", "ADMIN", "MEMBER"]).optional(),
   team: z.string().max(120).nullable().optional(),
   isActive: z.boolean().optional(),
   resetPassword: z.string().min(6).max(200).optional(),
 });
+
+export const siteSettingsSchema = z
+  .object({
+    "social.instagram": z.string().url("Instagram URL must be a valid URL").max(500).optional(),
+    "social.linkedin": z.string().url("LinkedIn URL must be a valid URL").max(500).optional(),
+    "social.twitter": z.string().url("Twitter/X URL must be a valid URL").max(500).optional(),
+    "social.youtube": z.string().url("YouTube URL must be a valid URL").max(500).optional(),
+    "social.github": z.string().url("GitHub URL must be a valid URL").max(500).optional(),
+    "partner.vapt_name": z.string().min(2).max(120).optional(),
+    "partner.vapt_url": z.string().url("VAPT URL must be a valid URL").max(500).optional(),
+  })
+  .refine((obj) => Object.keys(obj).length > 0, {
+    message: "At least one setting is required",
+  });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const start = Date.now();
   const ip = getClientIp(req);
 
-  const gate = await requireRole(req, "HEAD");
+  const gate = await requireRole(req, "ADMIN");
   if (!("user" in gate)) return gate as Response;
 
   if (!rateLimit(`admin-intake:${ip}`, 30)) {

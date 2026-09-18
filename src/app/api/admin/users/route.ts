@@ -19,15 +19,10 @@ const userSelect = {
 } as const;
 
 export async function GET(req: NextRequest) {
-  const gate = await requireRole(req, "HEAD");
+  const gate = await requireRole(req, "ADMIN");
   if (!("user" in gate)) return gate as Response;
 
-  const { user } = gate;
-  const roleFilter =
-    user.role === "ADMIN" ? undefined : { role: "MEMBER" as const };
-
   const users = await prisma.user.findMany({
-    where: roleFilter,
     orderBy: [{ role: "asc" }, { name: "asc" }],
     select: userSelect,
   });
@@ -36,7 +31,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const gate = await requireRole(req, "HEAD");
+  const gate = await requireRole(req, "ADMIN");
   if (!("user" in gate)) return gate as Response;
   const { user: actor } = gate;
 
@@ -53,12 +48,12 @@ export async function POST(req: NextRequest) {
   }
   const { name, email, password, role, team } = parsed.data;
 
-  // Only an ADMIN may create HEAD or ADMIN accounts.
-  if (role !== "MEMBER" && actor.role !== "ADMIN") {
+  // Only a SUPER_ADMIN may create ADMIN accounts.
+  if (role === "ADMIN" && actor.role !== "SUPER_ADMIN") {
     return NextResponse.json(
       {
         error: "FORBIDDEN",
-        message: "Heads can only create member accounts.",
+        message: "Admins can only create member accounts.",
       },
       { status: 403 },
     );

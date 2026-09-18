@@ -4,7 +4,6 @@ import { updateUserSchema } from "@lib/validators";
 import { errorResponse } from "@lib/api";
 import { hashPassword } from "@lib/auth/password";
 import { requireRole, type AuthUser } from "@lib/auth/guards";
-import { roleAtLeast } from "@lib/auth/guard-types";
 import { logApi } from "@lib/log/logger";
 
 export const dynamic = "force-dynamic";
@@ -22,16 +21,21 @@ const userSelect = {
 } as const;
 
 function canManageTarget(actor: AuthUser, targetRole: string): boolean {
-  if (actor.role === "ADMIN") return true;
-  if (actor.role === "HEAD") return targetRole === "MEMBER";
+  if (actor.role === "SUPER_ADMIN") return true;
+  if (actor.role === "ADMIN") return targetRole === "MEMBER";
   return false;
+}
+
+function canAssignRole(actor: AuthUser, nextRole: string): boolean {
+  if (nextRole === "MEMBER") return true;
+  return nextRole === "ADMIN" && actor.role === "SUPER_ADMIN";
 }
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const gate = await requireRole(req, "HEAD");
+  const gate = await requireRole(req, "ADMIN");
   if (!("user" in gate)) return gate as Response;
   const { user: actor } = gate;
 
@@ -44,16 +48,14 @@ export async function PATCH(
     );
   }
 
-  if (!canManageTarget(actor, target.role)) {
+  const editingSelf = target.id === actor.userId;
+
+  if (!editingSelf && !canManageTarget(actor, target.role)) {
     return NextResponse.json(
       { error: "FORBIDDEN", message: "You cannot manage this account." },
       { status: 403 },
     );
   }
-
-  // An admin must be able to permanently act on their own account except for
-  // protecting against self-lockout.
-  const editingSelf = target.id === actor.userId;
 
   const body = await req.json().catch(() => null);
   if (!body) {
@@ -70,17 +72,20 @@ export async function PATCH(
 
   const nextRole = role ?? target.role;
 
-  // Non-admins cannot elevate anyone toward HEAD/ADMIN, and cannot manage
-  // accounts that are not MEMBER-level (target role checked above).
-  if (actor.role !== "ADMIN" && nextRole !== "MEMBER") {
+  // Only SUPER_ADMIN may create/assign ADMIN roles, and only for accounts
+  // they are allowed to manage.
+  if (role !== undefined && !canAssignRole(actor, role)) {
     return NextResponse.json(
-      { error: "FORBIDDEN", message: "Heads cannot assign elevated roles." },
+      {
+        error: "FORBIDDEN",
+        message: "Admins cannot assign elevated roles.",
+      },
       { status: 403 },
     );
   }
 
-  // Prevent an admin from disabling or self-demoting their own account and
-  // locking themselves out.
+  // Prevent an admin from disabling or changing their own role and locking
+  // themselves out.
   if (editingSelf) {
     if (isActive === false) {
       return NextResponse.json(
@@ -88,9 +93,9 @@ export async function PATCH(
         { status: 409 },
       );
     }
-    if (role && !roleAtLeast(role, "ADMIN")) {
+    if (role !== undefined && role !== target.role) {
       return NextResponse.json(
-        { error: "CONFLICT", message: "You cannot demote your own account." },
+        { error: "CONFLICT", message: "You cannot change your own role." },
         { status: 409 },
       );
     }
@@ -100,7 +105,7 @@ export async function PATCH(
     where: { id },
     data: {
       ...(name !== undefined ? { name } : {}),
-      ...(role !== undefined ? { role } : {}),
+      ...(role !== undefined ? { role: nextRole } : {}),
       ...(team !== undefined ? { team } : {}),
       ...(isActive !== undefined ? { isActive } : {}),
       ...(resetPassword !== undefined
@@ -119,7 +124,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const gate = await requireRole(req, "HEAD");
+  const gate = await requireRole(req, "ADMIN");
   if (!("user" in gate)) return gate as Response;
   const { user: actor } = gate;
 
@@ -138,8 +143,16 @@ export async function DELETE(
       { status: 409 },
     );
   }
-  // Admins may not be deleted by other admins (they can only be deactivated).
-  if (target.role === "ADMIN") {
+
+  // Admins may not delete SUPER_ADMIN accounts.
+  if (target.role === "SUPER_ADMIN") {
+    return NextResponse.json(
+      { error: "FORBIDDEN", message: "SUPER_ADMIN accounts cannot be deleted." },
+      { status: 403 },
+    );
+  }
+  // Admin accounts may not be deleted by other admins (deactivate instead).
+  if (target.role === "ADMIN" && actor.role !== "SUPER_ADMIN") {
     return NextResponse.json(
       {
         error: "FORBIDDEN",

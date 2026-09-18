@@ -4,7 +4,6 @@ import Hero from "@/components/Hero";
 import ImpactMetrics from "@/components/ImpactMetrics";
 import EventsHub from "@/components/EventsHub";
 import RecommendedEventsRail from "@/components/RecommendedEventsRail";
-import CertificatePortal from "@/components/CertificatePortal";
 import StudentCouncil from "@/components/StudentCouncil";
 import IntakeBanner from "@/components/IntakeBanner";
 import TechBlog from "@/components/TechBlog";
@@ -21,7 +20,6 @@ export default function Home() {
         <ImpactMetrics />
         <EventsHub />
         <RecommendedEventsRail />
-        <CertificatePortal />
         <StudentCouncil />
         <IntakeBanner />
         <TechBlog />

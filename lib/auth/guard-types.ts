@@ -1,12 +1,12 @@
-export type Role = "ADMIN" | "HEAD" | "MEMBER";
+export type Role = "SUPER_ADMIN" | "ADMIN" | "MEMBER";
 
 export const ROLE_RANK: Record<Role, number> = {
   MEMBER: 1,
-  HEAD: 2,
-  ADMIN: 3,
+  ADMIN: 2,
+  SUPER_ADMIN: 3,
 };
 
-export const ROLES: Role[] = ["ADMIN", "HEAD", "MEMBER"];
+export const ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "MEMBER"];
 
 export function roleAtLeast(role: Role, minRole: Role): boolean {
   return ROLE_RANK[role] >= ROLE_RANK[minRole];

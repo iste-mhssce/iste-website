@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
+import EventRegisterModal from "@/components/EventRegisterModal";
 
 export interface ApiEvent {
   id: string;
@@ -73,6 +74,7 @@ export default function EventsHub() {
   const [activeTab, setActiveTab] = useState(1);
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [registering, setRegistering] = useState<ApiEvent | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,14 +112,14 @@ export default function EventsHub() {
   }, [activeTab]);
 
   return (
-    <section id="events" className="bg-[#F8FAFC] py-20 px-4 sm:px-6 lg:px-8">
+    <section id="events" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#2563EB] mb-3">
             Explore Our Workshops, Hackathons &amp; Seminars
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
-            Events Hub
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Events <span className="text-gradient">Hub</span>
           </h2>
         </div>
 
@@ -128,8 +130,8 @@ export default function EventsHub() {
               onClick={() => setActiveTab(i)}
               className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                 activeTab === i
-                  ? "bg-[#2563EB] text-white shadow-md"
-                  : "bg-white text-[#475569] border border-[#E2E8F0] hover:border-[#2563EB] hover:text-[#2563EB]"
+                  ? "glass-btn text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-[#2563EB] hover:text-[#2563EB]"
               }`}
             >
               {tab.label}
@@ -138,7 +140,7 @@ export default function EventsHub() {
         </div>
 
         {loading && (
-          <div className="text-center text-sm text-[#64748B] py-10">
+          <div className="text-center text-sm text-slate-400 py-10">
             Loading events...
           </div>
         )}
@@ -150,7 +152,7 @@ export default function EventsHub() {
               return (
                 <div
                   key={ev.id}
-                  className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col gap-4 shadow-sm hover:shadow-lg transition-shadow"
+                  className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col gap-4 shadow-sm hover:shadow-md hover:border-[#2563EB]/40 transition-all"
                 >
                   <span
                     className={`inline-flex items-center self-start text-xs font-bold px-3 py-1 rounded-md ${tagColor}`}
@@ -158,11 +160,11 @@ export default function EventsHub() {
                     {ev.tag || ev.category}
                   </span>
 
-                  <h3 className="text-xl font-bold text-[#0F172A] leading-snug">
+                  <h3 className="text-xl font-bold text-slate-900 leading-snug">
                     {ev.title}
                   </h3>
 
-                  <div className="flex flex-col gap-2 text-sm text-[#64748B]">
+                  <div className="flex flex-col gap-2 text-sm text-slate-600">
                     <div className="flex items-center gap-2">
                       <Calendar size={14} className="text-[#2563EB] shrink-0" />
                       {new Date(ev.startDate).toLocaleDateString("en-US", {
@@ -178,16 +180,15 @@ export default function EventsHub() {
                   </div>
 
                   <div className="mt-auto pt-2">
-                    <a
-                      href={`/api/events/register`}
-                      onClick={(e) => e.preventDefault()}
-                      className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors"
+                    <button
+                      onClick={() => setRegistering(ev)}
+                      className="glass-btn inline-flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-opacity hover:opacity-90"
                     >
                       {ev.category === "HACKATHON"
                         ? "Register Team"
                         : "Register Seat"}
                       <ArrowRight size={14} />
-                    </a>
+                    </button>
                   </div>
                 </div>
               );
@@ -196,11 +197,16 @@ export default function EventsHub() {
         )}
 
         {!loading && events.length === 0 && (
-          <div className="text-center text-sm text-[#64748B] py-10">
+          <div className="text-center text-sm text-slate-400 py-10">
             No events in this category yet. Check back soon.
           </div>
         )}
       </div>
+
+      <EventRegisterModal
+        event={registering}
+        onClose={() => setRegistering(null)}
+      />
     </section>
   );
 }

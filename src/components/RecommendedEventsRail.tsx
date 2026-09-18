@@ -43,28 +43,28 @@ export default function RecommendedEventsRail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-      <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-2">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 bg-blue-50/50 flex items-center gap-2">
           {personalized ? (
             <Sparkles size={16} className="text-[#2563EB]" />
           ) : (
             <Flame size={16} className="text-[#2563EB]" />
           )}
-          <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wide">
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
             {personalized ? "Recommended for you" : "Popular this month"}
           </h3>
         </div>
-        <div className="divide-y divide-[#E2E8F0]">
+        <div className="divide-y divide-slate-100">
           {data.events.slice(0, 4).map((ev) => (
             <div
               key={ev.id}
               className="px-6 py-4 flex items-center justify-between gap-4"
             >
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#0F172A] truncate">
+                <p className="text-sm font-semibold text-slate-800 truncate">
                   {ev.title}
                 </p>
-                <p className="text-xs text-[#64748B] flex items-center gap-1.5 mt-0.5">
+                <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
                   <Calendar size={12} />
                   {new Date(ev.startDate).toLocaleDateString("en-US", {
                     month: "short",
@@ -74,7 +74,7 @@ export default function RecommendedEventsRail() {
                   {ev.location}
                 </p>
               </div>
-              <span className="shrink-0 bg-[#DBEAFE] text-[#1D4ED8] text-xs font-bold px-3 py-1 rounded-md">
+              <span className="shrink-0 bg-blue-50 text-[#2563EB] text-xs font-bold px-3 py-1 rounded-md">
                 {ev.category}
               </span>
             </div>

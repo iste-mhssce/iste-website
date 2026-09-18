@@ -29,10 +29,10 @@ describe("chat assistant grounding contract", () => {
   it("formats retrieved source ids for auditability", () => {
     const rendered = CONTEXT_INDEXER([
       { id: "ev_1", type: "event", content: "National Hackathon 2026" },
-      { id: "pub_2", type: "publication", content: "Node.js APIs" },
+      { id: "post_2", type: "post", content: "Node.js APIs" },
     ]);
     expect(rendered).toContain("[event#ev_1]");
-    expect(rendered).toContain("[publication#pub_2]");
+    expect(rendered).toContain("[post#post_2]");
     expect(rendered).toContain("National Hackathon 2026");
   });
 

@@ -32,6 +32,7 @@ yarn-error.log*
 
 # local dev server log
 devserver.log*
+devserver*.log*
 
 # local-only Windows DB helper script (contains no secrets, but is machine-specific)
 scripts/fix-local-db.ps1

@@ -6,7 +6,7 @@ export interface LoginUser {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "HEAD" | "MEMBER";
+  role: "SUPER_ADMIN" | "ADMIN" | "MEMBER";
   team: string | null;
 }
 
@@ -14,10 +14,12 @@ export default function LoginForm({
   onSuccess,
   title,
   subtitle,
+  dark = false,
 }: {
   onSuccess: (user: LoginUser) => void;
   title: string;
   subtitle?: string;
+  dark?: boolean;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,12 +51,12 @@ export default function LoginForm({
   return (
     <div className="w-full max-w-sm">
       <div className="flex items-center gap-2 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl glass-btn flex items-center justify-center">
           <ShieldCheck size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-[#0F172A]">{title}</h1>
-          {subtitle && <p className="text-xs text-[#64748B]">{subtitle}</p>}
+          <h1 className={`text-lg font-bold ${dark ? "text-white" : "text-[#0F172A]"}`}>{title}</h1>
+          {subtitle && <p className={`text-xs ${dark ? "text-[#CBD5E1]" : "text-[#64748B]"}`}>{subtitle}</p>}
         </div>
       </div>
       <input
@@ -64,7 +66,11 @@ export default function LoginForm({
         onKeyDown={(e) => e.key === "Enter" && submit()}
         placeholder="Email address"
         autoComplete="username"
-        className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] mb-3 bg-white"
+        className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] mb-3 ${
+          dark
+            ? "border-white/15 bg-white/5 text-white placeholder:text-[#94A3B8]"
+            : "border-[#E2E8F0] bg-white"
+        }`}
       />
       <input
         type="password"
@@ -73,13 +79,19 @@ export default function LoginForm({
         onKeyDown={(e) => e.key === "Enter" && submit()}
         placeholder="Password"
         autoComplete="current-password"
-        className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] mb-3 bg-white"
+        className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] mb-3 ${
+          dark
+            ? "border-white/15 bg-white/5 text-white placeholder:text-[#94A3B8]"
+            : "border-[#E2E8F0] bg-white"
+        }`}
       />
-      {error && <p className="text-xs text-[#DC2626] mb-3">{error}</p>}
+      {error && <p className={`text-xs mb-3 ${dark ? "text-[#FCA5A5]" : "text-[#DC2626]"}`}>{error}</p>}
       <button
         onClick={submit}
         disabled={loading || !email || !password}
-        className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white font-semibold text-sm py-3 rounded-xl transition-colors inline-flex items-center justify-center gap-2"
+        className={`w-full disabled:opacity-50 text-white font-semibold text-sm py-3 rounded-xl transition-opacity inline-flex items-center justify-center gap-2 ${
+          dark ? "glass-btn" : "bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors"
+        }`}
       >
         {loading && <Loader2 size={15} className="animate-spin" />}
         Sign in

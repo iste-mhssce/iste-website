@@ -65,27 +65,27 @@ export default function AIAssistant() {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 inline-flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white w-14 h-14 rounded-full shadow-xl transition-colors"
+        className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] fixed bottom-6 right-6 z-50 inline-flex items-center justify-center gap-2 text-white w-14 h-14 rounded-full shadow-xl shadow-blue-600/40 transition-transform hover:scale-105"
         aria-label="Open ISTE assistant"
       >
         {open ? <X size={24} /> : <Sparkles size={24} />}
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-[calc(100vw-3rem)] max-w-sm bg-white rounded-2xl shadow-2xl border border-[#E2E8F0] flex flex-col overflow-hidden">
-          <div className="px-5 py-4 bg-[#0F172A] text-white flex items-center gap-2">
-            <Bot size={18} className="text-[#06B6D4]" />
+        <div className="bg-white fixed bottom-24 right-6 z-50 w-[calc(100vw-3rem)] max-w-sm rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+          <div className="px-5 py-4 bg-slate-900 text-white flex items-center gap-2">
+            <Bot size={18} className="text-[#60A5FA]" />
             <div>
-              <p className="text-sm font-bold">ISTE Nexus Assistant</p>
-              <p className="text-[11px] text-white/60">
+              <p className="text-sm font-bold">ISTE-MHSSCE Assistant</p>
+              <p className="text-[11px] text-slate-400">
                 Ask about events, council &amp; certificates
               </p>
             </div>
           </div>
 
-          <div className="flex-1 min-h-[260px] max-h-[320px] overflow-y-auto px-4 py-3 flex flex-col gap-3 bg-[#F8FAFC]">
+          <div className="flex-1 min-h-[260px] max-h-[320px] overflow-y-auto px-4 py-3 flex flex-col gap-3 bg-slate-50">
             {messages.length === 0 && (
-              <p className="text-xs text-[#64748B] text-center py-8">
+              <p className="text-xs text-slate-500 text-center py-8">
                 Hi! Ask me about upcoming workshops, hackathons, the student
                 council, or how to verify a certificate.
               </p>
@@ -96,13 +96,13 @@ export default function AIAssistant() {
                 className={`max-w-[85%] px-3 py-2 rounded-xl text-sm ${
                   m.role === "user"
                     ? "self-end bg-[#2563EB] text-white"
-                    : "self-start bg-white border border-[#E2E8F0] text-[#334155]"
+                    : "self-start bg-white border border-slate-200 text-slate-700"
                 }`}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>
                 {m.sources && m.sources.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-[#E2E8F0]">
-                    <p className="text-[10px] uppercase tracking-wide text-[#94A3B8] mb-1">
+                  <div className="mt-2 pt-2 border-t border-slate-200">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400 mb-1">
                       Sources
                     </p>
                     {m.sources.map((s) => (
@@ -118,13 +118,13 @@ export default function AIAssistant() {
               </div>
             ))}
             {loading && (
-              <div className="self-start bg-white border border-[#E2E8F0] rounded-xl px-3 py-2 text-sm text-[#64748B]">
+              <div className="self-start bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-500">
                 Thinking...
               </div>
             )}
           </div>
 
-          <div className="p-3 border-t border-[#E2E8F0] bg-white">
+          <div className="p-3 border-t border-slate-200 bg-white">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -132,7 +132,7 @@ export default function AIAssistant() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
                 placeholder="Type a message..."
-                className="flex-1 px-3 py-2 rounded-lg border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
               />
               <button
                 onClick={send}

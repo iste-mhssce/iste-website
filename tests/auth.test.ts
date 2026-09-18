@@ -30,7 +30,7 @@ describe("password hashing (scrypt)", () => {
 });
 
 describe("session tokens (HMAC-signed)", () => {
-  const user = { userId: "u_1", name: "Test", email: "t@x.com", role: "HEAD" as const };
+  const user = { userId: "u_1", name: "Test", email: "t@x.com", role: "ADMIN" as const };
 
   beforeAll(() => {
     process.env.AUTH_SECRET = process.env.AUTH_SECRET ?? "test-secret-at-least-16-chars";
@@ -59,12 +59,13 @@ describe("session tokens (HMAC-signed)", () => {
 });
 
 describe("role hierarchy", () => {
-  it("orders MEMBER < HEAD < ADMIN", () => {
+  it("orders MEMBER < ADMIN < SUPER_ADMIN", () => {
     expect(roleAtLeast("MEMBER", "MEMBER")).toBe(true);
-    expect(roleAtLeast("MEMBER", "HEAD")).toBe(false);
-    expect(roleAtLeast("HEAD", "MEMBER")).toBe(true);
-    expect(roleAtLeast("HEAD", "ADMIN")).toBe(false);
+    expect(roleAtLeast("MEMBER", "ADMIN")).toBe(false);
     expect(roleAtLeast("ADMIN", "MEMBER")).toBe(true);
     expect(roleAtLeast("ADMIN", "ADMIN")).toBe(true);
+    expect(roleAtLeast("ADMIN", "SUPER_ADMIN")).toBe(false);
+    expect(roleAtLeast("SUPER_ADMIN", "ADMIN")).toBe(true);
+    expect(roleAtLeast("SUPER_ADMIN", "SUPER_ADMIN")).toBe(true);
   });
 });
