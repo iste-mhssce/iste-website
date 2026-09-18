@@ -8,7 +8,7 @@ const navLinks = [
   { label: "About Us", href: "#about" },
   { label: "Events Hub", href: "#events" },
   { label: "Certificates", href: "#certificates" },
-  { label: "Council & Team", href: "#council" },
+  { label: "Team", href: "/team" },
   { label: "Blog & Updates", href: "#blog" },
 ];
 
@@ -54,15 +54,25 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden lg:flex items-center gap-7">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-slate-500 text-sm font-medium hover:text-[#2563EB] transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            link.href.startsWith("/") ? (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-slate-500 text-sm font-medium hover:text-[#2563EB] transition-colors"
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-slate-500 text-sm font-medium hover:text-[#2563EB] transition-colors"
+              >
+                {link.label}
+              </a>
+            ),
+          )}
           {session ? (
             <a
               href={portalHref}
@@ -99,16 +109,27 @@ export default function Navbar() {
 
       {mobileOpen && (
         <div className="glass lg:hidden border-t border-slate-200/70 px-4 pb-4 pt-2">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-slate-600 text-sm font-medium hover:text-[#2563EB] transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            link.href.startsWith("/") ? (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="block py-2.5 text-slate-600 text-sm font-medium hover:text-[#2563EB] transition-colors"
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="block py-2.5 text-slate-600 text-sm font-medium hover:text-[#2563EB] transition-colors"
+              >
+                {link.label}
+              </a>
+            ),
+          )}
           <a
             href={session ? portalHref : "/login"}
             onClick={() => setMobileOpen(false)}

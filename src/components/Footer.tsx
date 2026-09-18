@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import Image from "next/image";
 import { loadSiteSettings } from "@lib/site-settings-server";
 
@@ -8,7 +9,7 @@ const quickLinks: LinkItem[] = [
   { label: "About Us", href: "#about" },
   { label: "Events Hub", href: "#events" },
   { label: "Certificates", href: "#certificates" },
-  { label: "Council & Team", href: "#council" },
+  { label: "Team", href: "/team" },
   { label: "Blog & Updates", href: "#blog" },
   { label: "Join Chapter", href: "#intake" },
 ];
@@ -55,12 +56,21 @@ export default async function Footer() {
             <ul className="flex flex-col gap-2.5">
               {quickLinks.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-slate-400 hover:text-[#60A5FA] transition-colors"
-                  >
-                    {link.label}
-                  </a>
+                  {link.href.startsWith("/") ? (
+                    <Link
+                      href={link.href}
+                      className="text-sm text-slate-400 hover:text-[#60A5FA] transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="text-sm text-slate-400 hover:text-[#60A5FA] transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Crown,
+  ImagePlus,
 } from "lucide-react";
 
 export default function SuperAdminSidebar({
@@ -100,6 +101,22 @@ export default function SuperAdminSidebar({
               className={pathname === "/super-admin" ? "text-emerald-400" : ""}
             />
             Access Control
+          </Link>
+
+          <Link
+            href="/super-admin/team"
+            onClick={() => setOpen(false)}
+            className={`inline-flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              pathname === "/super-admin/team"
+                ? "bg-emerald-500/20 text-white"
+                : "text-slate-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <ImagePlus
+              size={16}
+              className={pathname === "/super-admin/team" ? "text-emerald-400" : ""}
+            />
+            Team Photos
           </Link>
 
           <div className="pt-3 mt-3 border-t border-slate-800">
