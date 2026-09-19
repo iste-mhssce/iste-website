@@ -4,3 +4,13 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Netlify secret scanning compares configured env-var VALUES against repo +
+  # build output. These four keys are NOT credentials:
+  #   - AI_EMBEDDING_MODEL / AI_CHAT_MODEL : model identifiers (they legitimately
+  #     appear as code defaults, e.g. ?? "text-embedding-3-small")
+  #   - AI_EMBEDDING_DIM                    : integer vector dimension
+  #   - NEXT_PUBLIC_SUPABASE_ANON_KEY       : public-by-design (NEXT_PUBLIC_)
+  # Keep scanning ON for the real secrets (DATABASE_URL, DIRECT_URL,
+  # AUTH_SECRET, ADMIN_API_KEY, AI_PROVIDER_API_KEY, SUPABASE_SERVICE_ROLE_KEY)
+  # — they are deliberately NOT listed here.
+  SECRETS_SCAN_OMIT_KEYS = "AI_EMBEDDING_MODEL,AI_CHAT_MODEL,AI_EMBEDDING_DIM,NEXT_PUBLIC_SUPABASE_ANON_KEY"
