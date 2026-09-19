@@ -235,24 +235,26 @@ CI (`.github/workflows/ci.yml`) runs `prisma validate`, typecheck, lint, and
 `npm test` on every PR; `prisma migrate deploy` runs against Supabase
 `DIRECT_URL` on merge to `main`.
 
-## Deployment (Vercel + managed Postgres)
+## Deployment (Netlify + managed Postgres)
 
-The app builds and runs on Vercel. All database calls go through API routes
-(dynamic), so a build does **not** need a reachable database; the Prisma client
-is generated automatically via the `postinstall` script.
+The app builds and runs on Netlify's Next.js runtime (OpenNext adapter,
+auto-detected). All database calls go through API routes (dynamic), so a build
+does **not** need a reachable database; the Prisma client is generated during
+install via the `postinstall` script and again by the build command in
+`netlify.toml`.
 
-### 1. Push to GitHub, import the repo in Vercel
+### 1. Push to GitHub, import the repo in Netlify
 
-- Import `iste-mhssce/iste-website` in the Vercel dashboard.
-- Framework preset: **Next.js** (auto-detected).
-- Build command: default (`next build`). Install command: default (`npm ci` runs
-  `postinstall` → `prisma generate`).
+- Go to **Netlify Dashboard → Add new site → Import an existing project**.
+- Build settings come from `netlify.toml` (build command
+  `prisma generate && next build`, publish directory `.next`). Node is pinned to
+  22 via `NODE_VERSION` in the toml.
 
-### 2. Add environment variables (Settings → Environment Variables)
+### 2. Add environment variables (Site configuration → Environment variables)
 
 | Variable | Required | Notes |
 |---|---|---|
-| `DATABASE_URL` | **Yes** | App traffic connection (use the pooler/edge URL from Neon/Supabase/Vercel Postgres) |
+| `DATABASE_URL` | **Yes** | App traffic connection (use the pooler/edge URL from Neon/Supabase/managed Postgres) |
 | `DIRECT_URL` | **Yes** | Session/direct connection used by Prisma migrate; must be set for `prisma` CLI steps |
 | `AUTH_SECRET` | **Yes** | Signs session cookies. Generate a strong value, e.g. `openssl rand -base64 32`. Without it login/roles fail |
 | `NEXT_PUBLIC_SUPABASE_URL` | No | Only if using Supabase for auth/storage |

@@ -41,8 +41,8 @@ scripts/fix-local-db.ps1
 .env*
 !.env.example
 
-# vercel
-.vercel
+# netlify
+.netlify
 
 # typescript
 *.tsbuildinfo
